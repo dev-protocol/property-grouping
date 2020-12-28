@@ -3,7 +3,6 @@ pragma solidity 0.7.6;
 
 import {Config} from "@devprotocol/util-contracts/contracts/config/Config.sol";
 
-
 contract PrpertyDirectoryConfig is Config {
 	function setFactory(address _factory) external {
 		set("_factory", _factory);
@@ -25,7 +24,11 @@ contract PrpertyDirectoryConfig is Config {
 		setByteKey(getTokenKey(_propertyDirectory), _token);
 	}
 
-	function getToken(address _propertyDirectory) external view returns (address) {
+	function getToken(address _propertyDirectory)
+		external
+		view
+		returns (address)
+	{
 		return getByteKey(getTokenKey(_propertyDirectory));
 	}
 

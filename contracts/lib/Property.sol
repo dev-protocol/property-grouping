@@ -16,19 +16,20 @@ library Property {
 		returns (uint256)
 	{
 		IERC20 property = IERC20(_property);
-		if(property.totalSupply() == CURRENT_SUPPLY) {
+		if (property.totalSupply() == CURRENT_SUPPLY) {
 			return _amount;
 		}
 		require(property.totalSupply() == OLD_SUPPLY, "liiegal address");
 		return _amount.mul(BASIS_VALUE);
 	}
+
 	function divAmount(address _property, uint256 _amount)
 		internal
 		view
 		returns (uint256)
 	{
 		IERC20 property = IERC20(_property);
-		if(property.totalSupply() == CURRENT_SUPPLY) {
+		if (property.totalSupply() == CURRENT_SUPPLY) {
 			return _amount;
 		}
 		require(property.totalSupply() == OLD_SUPPLY, "liiegal address");

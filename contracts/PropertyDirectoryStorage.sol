@@ -5,8 +5,6 @@ pragma solidity 0.7.6;
 import {UsingStorage} from "@devprotocol/util-contracts/contracts/storage/UsingStorage.sol";
 
 contract PropertyDirectoryStorage is UsingStorage {
-
-
 	// function setBytes(bytes32 _key, bytes32 _value) external onlyCurrentOwner {
 	// 	bytesStorage[_key] = _value;
 	// }
@@ -81,10 +79,15 @@ contract PropertyDirectoryStorage is UsingStorage {
 	// }
 
 	// transferedProperty
-	function setTransferedProperty(address _property, address _sender, uint256 _amount)
-		internal
-	{
-		eternalStorage().setUint(getTransferedPropertyKey(_property, _sender), _amount);
+	function setTransferedProperty(
+		address _property,
+		address _sender,
+		uint256 _amount
+	) internal {
+		eternalStorage().setUint(
+			getTransferedPropertyKey(_property, _sender),
+			_amount
+		);
 	}
 
 	function getTransferedProperty(address _property, address _sender)
@@ -92,7 +95,10 @@ contract PropertyDirectoryStorage is UsingStorage {
 		view
 		returns (uint256)
 	{
-		return eternalStorage().getUint(getTransferedPropertyKey(_property, _sender));
+		return
+			eternalStorage().getUint(
+				getTransferedPropertyKey(_property, _sender)
+			);
 	}
 
 	function getTransferedPropertyKey(address _property, address _sender)
@@ -100,6 +106,9 @@ contract PropertyDirectoryStorage is UsingStorage {
 		pure
 		returns (bytes32)
 	{
-		return keccak256(abi.encodePacked("_transferedProperty", _property, _sender));
+		return
+			keccak256(
+				abi.encodePacked("_transferedProperty", _property, _sender)
+			);
 	}
 }
