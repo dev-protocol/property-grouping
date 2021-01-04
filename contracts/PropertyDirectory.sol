@@ -38,7 +38,11 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 		_;
 	}
 
-	function createToken(address _sender, string memory _name, string memory _symbol) external onlyFactory {
+	function createToken(
+		address _sender,
+		string memory _name,
+		string memory _symbol
+	) external onlyFactory {
 		PropertyDirectoryToken token =
 			new PropertyDirectoryToken(_sender, _name, _symbol);
 		setToken(address(token));
@@ -48,7 +52,10 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 		_pause();
 	}
 
-	function associate(address _property, uint256 _amount) external whenNotPaused {
+	function associate(address _property, uint256 _amount)
+		external
+		whenNotPaused
+	{
 		require(
 			propertySet.length() < MAC_ASSOCIATE_COUNT,
 			"over associate count"
@@ -91,10 +98,7 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 		uint256 mulAmount = _property.mulAmount(_amount);
 		require(mulAmount <= transferdPropertyBalance, "amount is high");
 		IERC20 property = IERC20(_property);
-		require(
-			property.transfer(_recipient, _amount),
-			"transfer is fail"
-		);
+		require(property.transfer(_recipient, _amount), "transfer is fail");
 		setTransferedProperty(
 			_property,
 			msg.sender,
@@ -126,7 +130,10 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 		propertySet.add(_property);
 	}
 
-	function transferProperty(address _property, address _newPropertyDirectory) external onlyFactory {
+	function transferProperty(address _property, address _newPropertyDirectory)
+		external
+		onlyFactory
+	{
 		IERC20 iProperty = IERC20(_property);
 		uint256 balance = iProperty.balanceOf(address(this));
 		require(

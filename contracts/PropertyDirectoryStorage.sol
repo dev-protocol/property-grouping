@@ -79,35 +79,16 @@ contract PropertyDirectoryStorage is UsingStorage {
 	// }
 
 	// token
-	function setToken(
-		address _token
-	) internal {
-		eternalStorage().setAddress(
-			getAddressKey(),
-			_token
-		);
+	function setToken(address _token) internal {
+		eternalStorage().setAddress(getAddressKey(), _token);
 	}
 
-	function getToken()
-		public
-		view
-		returns (address)
-	{
-		return
-			eternalStorage().getAddress(
-				getAddressKey()
-			);
+	function getToken() public view returns (address) {
+		return eternalStorage().getAddress(getAddressKey());
 	}
 
-	function getAddressKey()
-		private
-		pure
-		returns (bytes32)
-	{
-		return
-			keccak256(
-				abi.encodePacked("_address")
-			);
+	function getAddressKey() private pure returns (bytes32) {
+		return keccak256(abi.encodePacked("_address"));
 	}
 
 	// transferedProperty

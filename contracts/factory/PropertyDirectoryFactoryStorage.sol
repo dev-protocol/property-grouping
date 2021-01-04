@@ -6,9 +6,7 @@ import {UsingStorage} from "@devprotocol/util-contracts/contracts/storage/UsingS
 
 contract PropertyDirectoryFactoryStorage is UsingStorage {
 	// propertyDirectory
-	function savePropertyDirectory(
-		address _propertyDirectory
-	) internal {
+	function savePropertyDirectory(address _propertyDirectory) internal {
 		eternalStorage().setBool(
 			getPropertyDirectoryKey(_propertyDirectory),
 			true

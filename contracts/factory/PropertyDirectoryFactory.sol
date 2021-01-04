@@ -8,9 +8,14 @@ import {IUsingStorage} from "@devprotocol/util-contracts/contracts/storage/IUsin
 // prettier-ignore
 import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 import {PropertyDirectory} from "contracts/PropertyDirectory.sol";
-import {PropertyDirectoryFactoryStorage} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
+import {
+	PropertyDirectoryFactoryStorage
+} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
 
-contract PropertyDirectoryFactory is UsingConfig, PropertyDirectoryFactoryStorage {
+contract PropertyDirectoryFactory is
+	UsingConfig,
+	PropertyDirectoryFactoryStorage
+{
 	event Create(
 		address indexed _propertyDirectory,
 		address _sender,
@@ -37,14 +42,18 @@ contract PropertyDirectoryFactory is UsingConfig, PropertyDirectoryFactoryStorag
 	function reCreate(address _directory) external returns (address) {
 		require(isTransferedProperty(_directory), "illegal address.");
 		PropertyDirectory oldPropertyDirectory = PropertyDirectory(_directory);
-		PropertyDirectory newPropertyDirectory = new PropertyDirectory(configAddress());
+		PropertyDirectory newPropertyDirectory =
+			new PropertyDirectory(configAddress());
 		address newDiredtoryAddress = address(newPropertyDirectory);
 		address storageAddress = oldPropertyDirectory.getStorageAddress();
 		newPropertyDirectory.setStorage(storageAddress);
 		oldPropertyDirectory.changeOwner(newDiredtoryAddress);
-		for(uint256 i = 0; i < oldPropertyDirectory.propertySetIndex(); i++) {
+		for (uint256 i = 0; i < oldPropertyDirectory.propertySetIndex(); i++) {
 			address property = oldPropertyDirectory.propertySetAt(i);
-			oldPropertyDirectory.transferProperty(property, newDiredtoryAddress);
+			oldPropertyDirectory.transferProperty(
+				property,
+				newDiredtoryAddress
+			);
 			newPropertyDirectory.addPropertySet(property);
 		}
 		oldPropertyDirectory.pause();
