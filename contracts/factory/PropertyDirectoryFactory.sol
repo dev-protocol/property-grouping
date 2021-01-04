@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 pragma solidity 0.7.6;
 
-import {
-	UsingConfig
-} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
-import {
-	IUsingStorage
-} from "@devprotocol/util-contracts/contracts/storage/IUsingStorage.sol";
-import {
-	IPropertyDirectoryConfig
-} from "contracts/config/IPropertyDirectoryConfig.sol";
+// prettier-ignore
+import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
+// prettier-ignore
+import {IUsingStorage} from "@devprotocol/util-contracts/contracts/storage/IUsingStorage.sol";
+// prettier-ignore
+import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 import {PropertyDirectory} from "contracts/PropertyDirectory.sol";
-import {
-	PropertyDirectoryToken
-} from "contracts/token/PropertyDirectoryToken.sol";
+import {PropertyDirectoryFactoryStorage} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
 
-contract PropertyDirectoryFactory is UsingConfig {
+contract PropertyDirectoryFactory is UsingConfig, PropertyDirectoryFactoryStorage {
 	event Create(
 		address indexed _propertyDirectory,
 		address _sender,
@@ -32,33 +27,29 @@ contract PropertyDirectoryFactory is UsingConfig {
 	{
 		PropertyDirectory p = new PropertyDirectory(configAddress());
 		p.createStorage();
-		PropertyDirectoryToken token =
-			new PropertyDirectoryToken(msg.sender, _name, _symbol);
+		p.createToken(msg.sender, _name, _symbol);
 		address diredtoryAddress = address(p);
-		IPropertyDirectoryConfig(configAddress()).setToken(
-			diredtoryAddress,
-			address(token)
-		);
+		savePropertyDirectory(diredtoryAddress);
 		emit Create(diredtoryAddress, msg.sender, _name, _symbol);
 		return diredtoryAddress;
 	}
 
 	function reCreate(address _directory) external returns (address) {
-		address token =
-			IPropertyDirectoryConfig(configAddress()).getToken(_directory);
-		require(token != address(0), "illegal address.");
-		IUsingStorage oldPropertyDirectory = IUsingStorage(_directory);
-		PropertyDirectory p = new PropertyDirectory(configAddress());
-		address newDiredtoryAddress = address(p);
+		require(isTransferedProperty(_directory), "illegal address.");
+		PropertyDirectory oldPropertyDirectory = PropertyDirectory(_directory);
+		PropertyDirectory newPropertyDirectory = new PropertyDirectory(configAddress());
+		address newDiredtoryAddress = address(newPropertyDirectory);
 		address storageAddress = oldPropertyDirectory.getStorageAddress();
-		p.setStorage(storageAddress);
+		newPropertyDirectory.setStorage(storageAddress);
 		oldPropertyDirectory.changeOwner(newDiredtoryAddress);
-		IPropertyDirectoryConfig(configAddress()).setToken(
-			newDiredtoryAddress,
-			token
-		);
+		for(uint256 i = 0; i < oldPropertyDirectory.propertySetIndex(); i++) {
+			address property = oldPropertyDirectory.propertySetAt(i);
+			oldPropertyDirectory.transferProperty(property, newDiredtoryAddress);
+			newPropertyDirectory.addPropertySet(property);
+		}
+		oldPropertyDirectory.pause();
+		savePropertyDirectory(newDiredtoryAddress);
 		emit ReCreate(newDiredtoryAddress, _directory);
 		return newDiredtoryAddress;
-		// TODO propertyのtrasnfer機能をつける
 	}
 }

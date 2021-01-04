@@ -19,24 +19,4 @@ contract PrpertyDirectoryConfig is Config {
 	function getProtocolConfig() external view returns (address) {
 		return get("_protocolConfig");
 	}
-
-	function setToken(address _propertyDirectory, address _token) external {
-		setByteKey(getTokenKey(_propertyDirectory), _token);
-	}
-
-	function getToken(address _propertyDirectory)
-		external
-		view
-		returns (address)
-	{
-		return getByteKey(getTokenKey(_propertyDirectory));
-	}
-
-	function getTokenKey(address _propertyDirectory)
-		private
-		pure
-		returns (bytes32)
-	{
-		return keccak256(abi.encodePacked("_token", _propertyDirectory));
-	}
 }
