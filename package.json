@@ -50,8 +50,8 @@
 		}
 	},
 	"dependencies": {
-		"@devprotocol/protocol": "^3.0.5",
-		"@devprotocol/util-contracts": "^2.1.5",
+		"@devprotocol/protocol": "3.0.6",
+		"@devprotocol/util-contracts": "2.1.5",
 		"@openzeppelin/contracts": "3.3.0"
 	}
 }

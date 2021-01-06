@@ -2,13 +2,16 @@
 pragma solidity 0.7.6;
 
 import {Config} from "@devprotocol/util-contracts/contracts/config/Config.sol";
+import {
+	IPropertyDirectoryConfig
+} from "contracts/config/IPropertyDirectoryConfig.sol";
 
-contract PrpertyDirectoryConfig is Config {
+contract PrpertyDirectoryConfig is Config, IPropertyDirectoryConfig {
 	function setFactory(address _factory) external {
 		set("_factory", _factory);
 	}
 
-	function getFactory() external view returns (address) {
+	function getFactory() external view override returns (address) {
 		return get("_factory");
 	}
 
@@ -16,7 +19,7 @@ contract PrpertyDirectoryConfig is Config {
 		set("_protocolConfig", _protocolConfig);
 	}
 
-	function getProtocolConfig() external view returns (address) {
+	function getProtocolConfig() external view override returns (address) {
 		return get("_protocolConfig");
 	}
 }

@@ -5,12 +5,9 @@ pragma solidity 0.7.6;
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
 // prettier-ignore
 import {IUsingStorage} from "@devprotocol/util-contracts/contracts/storage/IUsingStorage.sol";
-// prettier-ignore
-import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 import {PropertyDirectory} from "contracts/PropertyDirectory.sol";
-import {
-	PropertyDirectoryFactoryStorage
-} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
+// prettier-ignore
+import {PropertyDirectoryFactoryStorage} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
 
 contract PropertyDirectoryFactory is
 	UsingConfig,
@@ -48,6 +45,7 @@ contract PropertyDirectoryFactory is
 		address storageAddress = oldPropertyDirectory.getStorageAddress();
 		newPropertyDirectory.setStorage(storageAddress);
 		oldPropertyDirectory.changeOwner(newDiredtoryAddress);
+		newPropertyDirectory.setMyAddress();
 		for (uint256 i = 0; i < oldPropertyDirectory.propertySetIndex(); i++) {
 			address property = oldPropertyDirectory.propertySetAt(i);
 			oldPropertyDirectory.transferProperty(

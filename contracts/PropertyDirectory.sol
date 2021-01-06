@@ -3,23 +3,32 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
+// prettier-ignore
+import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
 // prettier-ignore
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 // prettier-ignore
 import {IPropertyGroup} from "@devprotocol/protocol/contracts/interface/IPropertyGroup.sol";
-// prettier-ignore
-import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
+import {
+	IWithdraw
+} from "@devprotocol/protocol/contracts/interface/IWithdraw.sol";
 import {Property} from "contracts/lib/Property.sol";
 import {PropertyDirectoryStorage} from "contracts/PropertyDirectoryStorage.sol";
+import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
 // prettier-ignore
 import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 // prettier-ignore
 import {PropertyDirectoryToken} from "contracts/token/PropertyDirectoryToken.sol";
 
-contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
+contract PropertyDirectory is
+	Pausable,
+	PropertyDirectoryStorage,
+	UsingConfig,
+	IPropertyDirectory
+{
 	using SafeMath for uint256;
 	using Property for address;
 	using EnumerableSet for EnumerableSet.AddressSet;
@@ -45,7 +54,15 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 	) external onlyFactory {
 		PropertyDirectoryToken token =
 			new PropertyDirectoryToken(_sender, _name, _symbol);
+		token.setPropertyDirectoryAddress(address(this));
 		setToken(address(token));
+	}
+
+	function setMyAddress() external onlyFactory {
+		address token = getToken();
+		PropertyDirectoryToken(token).setPropertyDirectoryAddress(
+			address(this)
+		);
 	}
 
 	function pause() external onlyFactory {
@@ -116,6 +133,31 @@ contract PropertyDirectory is Pausable, PropertyDirectoryStorage, UsingConfig {
 		IPropertyGroup propertyGroup =
 			IPropertyGroup(addressConfig.propertyGroup());
 		require(propertyGroup.isGroup(_property), "not property address");
+	}
+
+	function withdraw() external {
+		address[] properties;
+		for (uint256 i = 0; i < propertySet.length(); i++) {
+			properties.push(propertySet.at(i));
+		}
+		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
+		IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
+		// TODO Dev Kit対応せなあかんわな
+		// TODO 場合によってはevent-saverも
+	}
+
+	function beforeBalanceChange(
+		address _from,
+		address _to,
+		uint256 _amount
+	) external override {
+		require(msg.sender == getToken(), "illegal access");
+		// TODO 実装
+		require(_from == address(0), "not property address");
+		require(_to == address(0), "not property address");
+		require(_amount == address(0), "not property address");
+		// 転送
+		// Directory Tokensを転送する際に、転送元と転送先のdrawableリワードを更新するフックです。Withdraw.beforeBalanceChangeがリファレンスモデルです
 	}
 
 	function propertySetIndex() external view returns (uint256) {
