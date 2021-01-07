@@ -146,14 +146,18 @@ contract PropertyDirectory is
 		IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
 	}
 
-	function withdrawableAmount() external view returns (uint256){
+	function withdrawableAmount() external view returns (uint256) {
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
 		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
 		IWithdraw withdraw = IWithdraw(addressConfig.withdraw());
 		uint256 amount;
 		for (uint256 i = 0; i < propertySet.length(); i++) {
-			uint256 tmp = withdraw.calculateWithdrawableAmount(propertySet.at(i), address(this));
+			uint256 tmp =
+				withdraw.calculateWithdrawableAmount(
+					propertySet.at(i),
+					address(this)
+				);
 			amount = amount.add(tmp);
 		}
 		return amount;
