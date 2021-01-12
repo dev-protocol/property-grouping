@@ -145,7 +145,8 @@ contract PropertyDirectory is
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
 		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		uint256 minted = IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
+		uint256 minted =
+			IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
 		require(minted != 0, "token is not mint");
 		setCumulativeRewordAmount(minted.add(getCumulativeRewordAmount()));
 	}
@@ -173,45 +174,69 @@ contract PropertyDirectory is
 		uint256 _amount
 	) external override whenNotPaused {
 		require(msg.sender == getToken(), "illegal access");
-		uint256 totalRewordAmount = curretnRewardAmount().add(getCumulativeRewordAmount());
+		uint256 totalRewordAmount =
+			curretnRewardAmount().add(getCumulativeRewordAmount());
 		address eventAddress =
 			IPropertyDirectoryConfig(configAddress()).getEvent();
-		IPropertyDirectoryEvent(eventAddress).beforeBalanceChange(_from, _to, _amount);
+		IPropertyDirectoryEvent(eventAddress).beforeBalanceChange(
+			_from,
+			_to,
+			_amount
+		);
 		if (totalRewordAmount == 0) {
 			return;
 		}
-		setPendingWithdrawal(_from, getPendingWithdrawal(_from).add(calculateAmount(totalRewordAmount, _from)));
-		setPendingWithdrawal(_to, getPendingWithdrawal(_to).add(calculateAmount(totalRewordAmount, _to)));
+		setPendingWithdrawal(
+			_from,
+			getPendingWithdrawal(_from).add(
+				calculateAmount(totalRewordAmount, _from)
+			)
+		);
+		setPendingWithdrawal(
+			_to,
+			getPendingWithdrawal(_to).add(
+				calculateAmount(totalRewordAmount, _to)
+			)
+		);
 	}
 
 	function withdraw() external whenNotPaused {
 		IERC20 token = IERC20(getToken());
 		uint256 balance = token.balanceOf(msg.sender);
 		require(balance != 0, "you do not execute withdraw");
-		uint256 totalRewordAmount = curretnRewardAmount().add(getCumulativeRewordAmount());
-		uint value = calculateAmount(totalRewordAmount, msg.sender);
+		uint256 totalRewordAmount =
+			curretnRewardAmount().add(getCumulativeRewordAmount());
+		uint256 value = calculateAmount(totalRewordAmount, msg.sender);
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
 		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
 		require(
-			IERC20(addressConfig.token()).transfer(msg.sender, getPendingWithdrawal(msg.sender).add(value)),
+			IERC20(addressConfig.token()).transfer(
+				msg.sender,
+				getPendingWithdrawal(msg.sender).add(value)
+			),
 			"transfer is failed"
 		);
 		setPendingWithdrawal(msg.sender, 0);
 	}
 
-	function calculateAmount(uint256 _totalRewordAmount, address _account) private returns (uint256) {
+	function calculateAmount(uint256 _totalRewordAmount, address _account)
+		private
+		returns (uint256)
+	{
 		uint256 lastTotalReword = getLastTotalRewordAmount(_account);
 		ERC20 token = ERC20(getToken());
 		uint256 decimals = token.decimals();
 		uint256 balance = token.balanceOf(_account);
 		uint256 totalSupply = token.totalSupply();
-		uint256 unitPrice = _totalRewordAmount.sub(lastTotalReword).mul(decimals).div(totalSupply);
+		uint256 unitPrice =
+			_totalRewordAmount.sub(lastTotalReword).mul(decimals).div(
+				totalSupply
+			);
 		uint256 value = unitPrice.mul(balance).div(decimals);
 		setLastTotalRewordAmount(_account, _totalRewordAmount);
 		return value;
 	}
-
 
 	function propertySetIndex() external view returns (uint256) {
 		return propertySet.length();

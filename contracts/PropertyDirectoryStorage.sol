@@ -53,110 +53,62 @@ contract PropertyDirectoryStorage is UsingStorage {
 	}
 
 	// cumulativeRewordAmount
-	function setCumulativeRewordAmount(
-		uint256 _amount
-	) internal {
-		eternalStorage().setUint(
-			getCumulativeRewordAmountKey(),
-			_amount
-		);
+	function setCumulativeRewordAmount(uint256 _amount) internal {
+		eternalStorage().setUint(getCumulativeRewordAmountKey(), _amount);
 	}
 
-	function getCumulativeRewordAmount()
-		public
-		view
-		returns (uint256)
-	{
-		return
-			eternalStorage().getUint(
-				getCumulativeRewordAmountKey()
-			);
+	function getCumulativeRewordAmount() public view returns (uint256) {
+		return eternalStorage().getUint(getCumulativeRewordAmountKey());
 	}
 
-	function getCumulativeRewordAmountKey()
-		private
-		pure
-		returns (bytes32)
-	{
-		return
-			keccak256(
-				abi.encodePacked("_cumulativeRewordAmount")
-			);
+	function getCumulativeRewordAmountKey() private pure returns (bytes32) {
+		return keccak256(abi.encodePacked("_cumulativeRewordAmount"));
 	}
 
 	// lastTotalRewordAmount
-	function setLastTotalRewordAmount(
-		address _account,
-		uint256 _amount
-	) internal {
+	function setLastTotalRewordAmount(address _account, uint256 _amount)
+		internal
+	{
 		eternalStorage().setUint(
 			getLastTotalRewordAmountKey(_account),
 			_amount
 		);
 	}
 
-	function getLastTotalRewordAmount(
-		address _account
-	)
+	function getLastTotalRewordAmount(address _account)
 		public
 		view
 		returns (uint256)
 	{
-		return
-			eternalStorage().getUint(
-				getLastTotalRewordAmountKey(_account)
-			);
+		return eternalStorage().getUint(getLastTotalRewordAmountKey(_account));
 	}
 
-	function getLastTotalRewordAmountKey(
-		address _account
-	)
+	function getLastTotalRewordAmountKey(address _account)
 		private
 		pure
 		returns (bytes32)
 	{
-		return
-			keccak256(
-				abi.encodePacked("_lastTotalRewordAmount", _account)
-			);
+		return keccak256(abi.encodePacked("_lastTotalRewordAmount", _account));
 	}
-
 
 	// pendingWithdrawal
-	function setPendingWithdrawal(
-		address _account,
-		uint256 _amount
-	) internal {
-		eternalStorage().setUint(
-			getPendingWithdrawalKey(_account),
-			_amount
-		);
+	function setPendingWithdrawal(address _account, uint256 _amount) internal {
+		eternalStorage().setUint(getPendingWithdrawalKey(_account), _amount);
 	}
 
-	function getPendingWithdrawal(
-		address _account
-	)
+	function getPendingWithdrawal(address _account)
 		public
 		view
 		returns (uint256)
 	{
-		return
-			eternalStorage().getUint(
-				getPendingWithdrawalKey(_account)
-			);
+		return eternalStorage().getUint(getPendingWithdrawalKey(_account));
 	}
 
-	function getPendingWithdrawalKey(
-		address _account
-	)
+	function getPendingWithdrawalKey(address _account)
 		private
 		pure
 		returns (bytes32)
 	{
-		return
-			keccak256(
-				abi.encodePacked("_pendingWithdrawal", _account)
-			);
+		return keccak256(abi.encodePacked("_pendingWithdrawal", _account));
 	}
-
 }
