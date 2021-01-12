@@ -53,26 +53,27 @@ contract PropertyDirectory is
 		address _author,
 		string memory _name,
 		string memory _symbol
-	) external onlyFactory {
+	) external override onlyFactory {
 		PropertyDirectoryToken token =
 			new PropertyDirectoryToken(_author, _name, _symbol);
 		token.setPropertyDirectoryAddress(address(this));
 		setToken(address(token));
 	}
 
-	function setMyAddress() external onlyFactory {
+	function setMyAddress() external override onlyFactory {
 		address token = getToken();
 		PropertyDirectoryToken(token).setPropertyDirectoryAddress(
 			address(this)
 		);
 	}
 
-	function pause() external onlyFactory {
+	function pause() external override onlyFactory {
 		_pause();
 	}
 
 	function associate(address _property, uint256 _amount)
 		external
+		override
 		whenNotPaused
 	{
 		require(
@@ -137,7 +138,7 @@ contract PropertyDirectory is
 		require(propertyGroup.isGroup(_property), "not property address");
 	}
 
-	function takeRewordAmount() external whenNotPaused {
+	function takeRewordAmount() external override whenNotPaused {
 		address[] storage properties;
 		for (uint256 i = 0; i < propertySet.length(); i++) {
 			properties.push(propertySet.at(i));
@@ -200,7 +201,7 @@ contract PropertyDirectory is
 		);
 	}
 
-	function withdraw() external whenNotPaused {
+	function withdraw() external override whenNotPaused {
 		IERC20 token = IERC20(getToken());
 		uint256 balance = token.balanceOf(msg.sender);
 		require(balance != 0, "you do not execute withdraw");
@@ -238,20 +239,26 @@ contract PropertyDirectory is
 		return value;
 	}
 
-	function propertySetIndex() external view returns (uint256) {
+	function propertySetIndex() external view override returns (uint256) {
 		return propertySet.length();
 	}
 
-	function propertySetAt(uint256 _index) external view returns (address) {
+	function propertySetAt(uint256 _index)
+		external
+		view
+		override
+		returns (address)
+	{
 		return propertySet.at(_index);
 	}
 
-	function addPropertySet(address _property) external onlyFactory {
+	function addPropertySet(address _property) external override onlyFactory {
 		propertySet.add(_property);
 	}
 
 	function transferProperty(address _property, address _newPropertyDirectory)
 		external
+		override
 		onlyFactory
 	{
 		IERC20 iProperty = IERC20(_property);

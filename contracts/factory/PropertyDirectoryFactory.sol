@@ -3,8 +3,6 @@ pragma solidity 0.7.6;
 
 // prettier-ignore
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
-// prettier-ignore
-import {IUsingStorage} from "@devprotocol/util-contracts/contracts/storage/IUsingStorage.sol";
 import {PropertyDirectory} from "contracts/PropertyDirectory.sol";
 // prettier-ignore
 import {PropertyDirectoryFactoryStorage} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
@@ -37,7 +35,7 @@ contract PropertyDirectoryFactory is
 	}
 
 	function recreate(address _directory) external returns (address) {
-		require(isTransferedProperty(_directory), "illegal address.");
+		require(isPropertyDirectory(_directory), "illegal address.");
 		PropertyDirectory oldPropertyDirectory = PropertyDirectory(_directory);
 		PropertyDirectory newPropertyDirectory =
 			new PropertyDirectory(configAddress());

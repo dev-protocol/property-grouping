@@ -13,7 +13,7 @@ contract PropertyDirectoryFactoryStorage is UsingStorage {
 		);
 	}
 
-	function isTransferedProperty(address _propertyDirectory)
+	function isPropertyDirectory(address _propertyDirectory)
 		public
 		view
 		returns (bool)
