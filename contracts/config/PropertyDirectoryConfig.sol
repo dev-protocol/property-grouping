@@ -2,9 +2,8 @@
 pragma solidity 0.7.6;
 
 import {Config} from "@devprotocol/util-contracts/contracts/config/Config.sol";
-import {
-	IPropertyDirectoryConfig
-} from "contracts/config/IPropertyDirectoryConfig.sol";
+// prettier-ignore
+import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 
 contract PrpertyDirectoryConfig is Config, IPropertyDirectoryConfig {
 	function setFactory(address _factory) external {
@@ -21,5 +20,13 @@ contract PrpertyDirectoryConfig is Config, IPropertyDirectoryConfig {
 
 	function getProtocolConfig() external view override returns (address) {
 		return get("_protocolConfig");
+	}
+
+	function setEvent(address _event) external {
+		set("_event", _event);
+	}
+
+	function getEvent() external view override returns (address) {
+		return get("_event");
 	}
 }

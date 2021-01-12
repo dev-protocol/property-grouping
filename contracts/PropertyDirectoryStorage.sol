@@ -51,4 +51,112 @@ contract PropertyDirectoryStorage is UsingStorage {
 				abi.encodePacked("_transferedProperty", _property, _sender)
 			);
 	}
+
+	// cumulativeRewordAmount
+	function setCumulativeRewordAmount(
+		uint256 _amount
+	) internal {
+		eternalStorage().setUint(
+			getCumulativeRewordAmountKey(),
+			_amount
+		);
+	}
+
+	function getCumulativeRewordAmount()
+		public
+		view
+		returns (uint256)
+	{
+		return
+			eternalStorage().getUint(
+				getCumulativeRewordAmountKey()
+			);
+	}
+
+	function getCumulativeRewordAmountKey()
+		private
+		pure
+		returns (bytes32)
+	{
+		return
+			keccak256(
+				abi.encodePacked("_cumulativeRewordAmount")
+			);
+	}
+
+	// lastTotalRewordAmount
+	function setLastTotalRewordAmount(
+		address _account,
+		uint256 _amount
+	) internal {
+		eternalStorage().setUint(
+			getLastTotalRewordAmountKey(_account),
+			_amount
+		);
+	}
+
+	function getLastTotalRewordAmount(
+		address _account
+	)
+		public
+		view
+		returns (uint256)
+	{
+		return
+			eternalStorage().getUint(
+				getLastTotalRewordAmountKey(_account)
+			);
+	}
+
+	function getLastTotalRewordAmountKey(
+		address _account
+	)
+		private
+		pure
+		returns (bytes32)
+	{
+		return
+			keccak256(
+				abi.encodePacked("_lastTotalRewordAmount", _account)
+			);
+	}
+
+
+	// pendingWithdrawal
+	function setPendingWithdrawal(
+		address _account,
+		uint256 _amount
+	) internal {
+		eternalStorage().setUint(
+			getPendingWithdrawalKey(_account),
+			_amount
+		);
+	}
+
+	function getPendingWithdrawal(
+		address _account
+	)
+		public
+		view
+		returns (uint256)
+	{
+		return
+			eternalStorage().getUint(
+				getPendingWithdrawalKey(_account)
+			);
+	}
+
+	function getPendingWithdrawalKey(
+		address _account
+	)
+		private
+		pure
+		returns (bytes32)
+	{
+		return
+			keccak256(
+				abi.encodePacked("_pendingWithdrawal", _account)
+			);
+	}
+
 }

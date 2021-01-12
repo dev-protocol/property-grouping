@@ -15,11 +15,11 @@ contract PropertyDirectoryFactory is
 {
 	event Create(
 		address indexed _propertyDirectory,
-		address _sender,
+		address _author,
 		string _name,
 		string _symbol
 	);
-	event ReCreate(address indexed _new, address _old);
+	event Recreate(address indexed _old, address _new);
 
 	constructor(address _config) UsingConfig(_config) {}
 
@@ -36,7 +36,7 @@ contract PropertyDirectoryFactory is
 		return diredtoryAddress;
 	}
 
-	function reCreate(address _directory) external returns (address) {
+	function recreate(address _directory) external returns (address) {
 		require(isTransferedProperty(_directory), "illegal address.");
 		PropertyDirectory oldPropertyDirectory = PropertyDirectory(_directory);
 		PropertyDirectory newPropertyDirectory =
@@ -56,7 +56,7 @@ contract PropertyDirectoryFactory is
 		}
 		oldPropertyDirectory.pause();
 		savePropertyDirectory(newDiredtoryAddress);
-		emit ReCreate(newDiredtoryAddress, _directory);
+		emit Recreate(_directory, newDiredtoryAddress);
 		return newDiredtoryAddress;
 	}
 }

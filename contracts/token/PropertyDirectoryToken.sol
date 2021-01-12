@@ -7,6 +7,7 @@ import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
 contract PropertyDirectoryToken is ERC20 {
 	uint256 private constant SUPPLY = 10000000000000000000000000;
 	address private propertyDirectory;
+	address public author;
 
 	constructor(
 		address _author,
@@ -14,6 +15,7 @@ contract PropertyDirectoryToken is ERC20 {
 		string memory _symbol
 	) ERC20(_name, _symbol) {
 		_mint(_author, SUPPLY);
+		author = _author;
 		propertyDirectory = msg.sender;
 	}
 

@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // prettier-ignore
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
@@ -12,9 +13,8 @@ import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingCon
 import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 // prettier-ignore
 import {IPropertyGroup} from "@devprotocol/protocol/contracts/interface/IPropertyGroup.sol";
-import {
-	IWithdraw
-} from "@devprotocol/protocol/contracts/interface/IWithdraw.sol";
+// prettier-ignore
+import {IWithdraw} from "@devprotocol/protocol/contracts/interface/IWithdraw.sol";
 import {Property} from "contracts/lib/Property.sol";
 import {PropertyDirectoryStorage} from "contracts/PropertyDirectoryStorage.sol";
 import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
@@ -22,6 +22,8 @@ import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
 import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 // prettier-ignore
 import {PropertyDirectoryToken} from "contracts/token/PropertyDirectoryToken.sol";
+// prettier-ignore
+import {IPropertyDirectoryEvent} from "contracts/event/IPropertyDirectoryEvent.sol";
 
 contract PropertyDirectory is
 	Pausable,
@@ -48,12 +50,12 @@ contract PropertyDirectory is
 	}
 
 	function createToken(
-		address _sender,
+		address _author,
 		string memory _name,
 		string memory _symbol
 	) external onlyFactory {
 		PropertyDirectoryToken token =
-			new PropertyDirectoryToken(_sender, _name, _symbol);
+			new PropertyDirectoryToken(_author, _name, _symbol);
 		token.setPropertyDirectoryAddress(address(this));
 		setToken(address(token));
 	}
@@ -104,27 +106,27 @@ contract PropertyDirectory is
 	}
 
 	// TODO governance
-	function disassociate(
-		address _recipient,
-		address _property,
-		uint256 _amount
-	) external whenNotPaused {
-		validatePropertyAddress(_property);
-		uint256 transferdPropertyBalance =
-			getTransferedProperty(_property, msg.sender);
-		uint256 mulAmount = _property.mulAmount(_amount);
-		require(mulAmount <= transferdPropertyBalance, "amount is high");
-		IERC20 property = IERC20(_property);
-		require(property.transfer(_recipient, _amount), "transfer is fail");
-		setTransferedProperty(
-			_property,
-			msg.sender,
-			transferdPropertyBalance.sub(mulAmount)
-		);
-		if (property.balanceOf(address(this)) == 0) {
-			propertySet.remove(_property);
-		}
-	}
+	// function disassociate(
+	// 	address _recipient,
+	// 	address _property,
+	// 	uint256 _amount
+	// ) external whenNotPaused {
+	// 	validatePropertyAddress(_property);
+	// 	uint256 transferdPropertyBalance =
+	// 		getTransferedProperty(_property, msg.sender);
+	// 	uint256 mulAmount = _property.mulAmount(_amount);
+	// 	require(mulAmount <= transferdPropertyBalance, "amount is high");
+	// 	IERC20 property = IERC20(_property);
+	// 	require(property.transfer(_recipient, _amount), "transfer is fail");
+	// 	setTransferedProperty(
+	// 		_property,
+	// 		msg.sender,
+	// 		transferdPropertyBalance.sub(mulAmount)
+	// 	);
+	// 	if (property.balanceOf(address(this)) == 0) {
+	// 		propertySet.remove(_property);
+	// 	}
+	// }
 
 	function validatePropertyAddress(address _property) private view {
 		address protocolConfig =
@@ -135,26 +137,28 @@ contract PropertyDirectory is
 		require(propertyGroup.isGroup(_property), "not property address");
 	}
 
-	function withdraw() external {
-		address[] properties;
+	function takeRewordAmount() external whenNotPaused {
+		address[] storage properties;
 		for (uint256 i = 0; i < propertySet.length(); i++) {
 			properties.push(propertySet.at(i));
 		}
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
 		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
+		uint256 minted = IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
+		require(minted != 0, "token is not mint");
+		setCumulativeRewordAmount(minted.add(getCumulativeRewordAmount()));
 	}
 
-	function withdrawableAmount() external view returns (uint256) {
+	function curretnRewardAmount() public view whenNotPaused returns (uint256) {
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
 		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		IWithdraw withdraw = IWithdraw(addressConfig.withdraw());
+		IWithdraw withdrawContract = IWithdraw(addressConfig.withdraw());
 		uint256 amount;
 		for (uint256 i = 0; i < propertySet.length(); i++) {
 			uint256 tmp =
-				withdraw.calculateWithdrawableAmount(
+				withdrawContract.calculateWithdrawableAmount(
 					propertySet.at(i),
 					address(this)
 				);
@@ -167,15 +171,47 @@ contract PropertyDirectory is
 		address _from,
 		address _to,
 		uint256 _amount
-	) external override {
+	) external override whenNotPaused {
 		require(msg.sender == getToken(), "illegal access");
-		// TODO 実装
-		require(_from == address(0), "not property address");
-		require(_to == address(0), "not property address");
-		require(_amount == address(0), "not property address");
-		// 転送
-		// Directory Tokensを転送する際に、転送元と転送先のdrawableリワードを更新するフックです。Withdraw.beforeBalanceChangeがリファレンスモデルです
+		uint256 totalRewordAmount = curretnRewardAmount().add(getCumulativeRewordAmount());
+		address eventAddress =
+			IPropertyDirectoryConfig(configAddress()).getEvent();
+		IPropertyDirectoryEvent(eventAddress).beforeBalanceChange(_from, _to, _amount);
+		if (totalRewordAmount == 0) {
+			return;
+		}
+		setPendingWithdrawal(_from, getPendingWithdrawal(_from).add(calculateAmount(totalRewordAmount, _from)));
+		setPendingWithdrawal(_to, getPendingWithdrawal(_to).add(calculateAmount(totalRewordAmount, _to)));
 	}
+
+	function withdraw() external whenNotPaused {
+		IERC20 token = IERC20(getToken());
+		uint256 balance = token.balanceOf(msg.sender);
+		require(balance != 0, "you do not execute withdraw");
+		uint256 totalRewordAmount = curretnRewardAmount().add(getCumulativeRewordAmount());
+		uint value = calculateAmount(totalRewordAmount, msg.sender);
+		address protocolConfig =
+			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
+		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
+		require(
+			IERC20(addressConfig.token()).transfer(msg.sender, getPendingWithdrawal(msg.sender).add(value)),
+			"transfer is failed"
+		);
+		setPendingWithdrawal(msg.sender, 0);
+	}
+
+	function calculateAmount(uint256 _totalRewordAmount, address _account) private returns (uint256) {
+		uint256 lastTotalReword = getLastTotalRewordAmount(_account);
+		ERC20 token = ERC20(getToken());
+		uint256 decimals = token.decimals();
+		uint256 balance = token.balanceOf(_account);
+		uint256 totalSupply = token.totalSupply();
+		uint256 unitPrice = _totalRewordAmount.sub(lastTotalReword).mul(decimals).div(totalSupply);
+		uint256 value = unitPrice.mul(balance).div(decimals);
+		setLastTotalRewordAmount(_account, _totalRewordAmount);
+		return value;
+	}
+
 
 	function propertySetIndex() external view returns (uint256) {
 		return propertySet.length();

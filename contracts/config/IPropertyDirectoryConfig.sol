@@ -6,4 +6,6 @@ interface IPropertyDirectoryConfig {
 	function getFactory() external returns (address);
 
 	function getProtocolConfig() external view returns (address);
+
+	function getEvent() external view returns (address);
 }
