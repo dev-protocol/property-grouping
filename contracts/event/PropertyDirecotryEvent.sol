@@ -24,9 +24,12 @@ contract PropertyDirectoryEvent is IPropertyDirectoryEvent, UsingConfig {
 		address _to,
 		uint256 _amount
 	) external override {
-		address factory = IPropertyDirectoryConfig(configAddress()).getFactory();
+		address factory =
+			IPropertyDirectoryConfig(configAddress()).getFactory();
 		require(
-			IPropertyDirectoryFactory(factory).isPropertyDirectoryAddress(msg.sender),
+			IPropertyDirectoryFactory(factory).isPropertyDirectoryAddress(
+				msg.sender
+			),
 			"illegal address."
 		);
 		emit BeforeBalanceChange(_from, _to, _amount);

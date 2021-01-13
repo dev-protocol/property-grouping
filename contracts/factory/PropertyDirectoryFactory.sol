@@ -25,7 +25,8 @@ contract PropertyDirectoryFactory is
 	constructor(address _config) UsingConfig(_config) {}
 
 	function create(string memory _name, string memory _symbol)
-		external override
+		external
+		override
 		returns (address)
 	{
 		PropertyDirectory p = new PropertyDirectory(configAddress());
@@ -62,7 +63,12 @@ contract PropertyDirectoryFactory is
 		return newDiredtoryAddress;
 	}
 
-	function isPropertyDirectoryAddress(address _directory) external view override returns (bool) {
+	function isPropertyDirectoryAddress(address _directory)
+		external
+		view
+		override
+		returns (bool)
+	{
 		return isPropertyDirectory(_directory);
 	}
 }

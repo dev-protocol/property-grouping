@@ -8,5 +8,8 @@ interface IPropertyDirectoryFactory {
 
 	function recreate(address _directory) external returns (address);
 
-	function isPropertyDirectoryAddress(address _directory) external view returns (bool);
+	function isPropertyDirectoryAddress(address _directory)
+		external
+		view
+		returns (bool);
 }

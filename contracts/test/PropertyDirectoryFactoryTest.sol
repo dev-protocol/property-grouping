@@ -3,6 +3,7 @@ pragma solidity 0.7.6;
 
 contract PropertyDirectoryFactoryTest {
 	bool private value;
+
 	function setValue(bool _value) external {
 		value = _value;
 	}
