@@ -6,10 +6,13 @@ import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingCon
 import {PropertyDirectory} from "contracts/PropertyDirectory.sol";
 // prettier-ignore
 import {PropertyDirectoryFactoryStorage} from "contracts/factory/PropertyDirectoryFactoryStorage.sol";
+// prettier-ignore
+import {IPropertyDirectoryFactory} from "contracts/factory/IPropertyDirectoryFactory.sol";
 
 contract PropertyDirectoryFactory is
 	UsingConfig,
-	PropertyDirectoryFactoryStorage
+	PropertyDirectoryFactoryStorage,
+	IPropertyDirectoryFactory
 {
 	event Create(
 		address indexed _propertyDirectory,
@@ -22,19 +25,19 @@ contract PropertyDirectoryFactory is
 	constructor(address _config) UsingConfig(_config) {}
 
 	function create(string memory _name, string memory _symbol)
-		external
+		external override
 		returns (address)
 	{
 		PropertyDirectory p = new PropertyDirectory(configAddress());
 		p.createStorage();
 		p.createToken(msg.sender, _name, _symbol);
 		address diredtoryAddress = address(p);
-		savePropertyDirectory(diredtoryAddress);
+		addPropertyDirectory(diredtoryAddress);
 		emit Create(diredtoryAddress, msg.sender, _name, _symbol);
 		return diredtoryAddress;
 	}
 
-	function recreate(address _directory) external returns (address) {
+	function recreate(address _directory) external override returns (address) {
 		require(isPropertyDirectory(_directory), "illegal address.");
 		PropertyDirectory oldPropertyDirectory = PropertyDirectory(_directory);
 		PropertyDirectory newPropertyDirectory =
@@ -53,8 +56,13 @@ contract PropertyDirectoryFactory is
 			newPropertyDirectory.addPropertySet(property);
 		}
 		oldPropertyDirectory.pause();
-		savePropertyDirectory(newDiredtoryAddress);
+		addPropertyDirectory(newDiredtoryAddress);
+		deletePropertyDirectory(address(oldPropertyDirectory));
 		emit Recreate(_directory, newDiredtoryAddress);
 		return newDiredtoryAddress;
+	}
+
+	function isPropertyDirectoryAddress(address _directory) external view override returns (bool) {
+		return isPropertyDirectory(_directory);
 	}
 }
