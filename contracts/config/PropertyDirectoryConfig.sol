@@ -5,7 +5,7 @@ import {Config} from "@devprotocol/util-contracts/contracts/config/Config.sol";
 // prettier-ignore
 import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 
-contract PrpertyDirectoryConfig is Config, IPropertyDirectoryConfig {
+contract PropertyDirectoryConfig is Config, IPropertyDirectoryConfig {
 	function setFactory(address _factory) external {
 		set("_factory", _factory);
 	}
