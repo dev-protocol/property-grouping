@@ -43,7 +43,7 @@ contract PropertyDirectoryToken is ERC20 {
 		uint256 _amount
 	) public override returns (bool) {
 		IPropertyDirectory(propertyDirectory).beforeBalanceChange(
-			msg.sender,
+			_sender,
 			_recipient,
 			_amount
 		);
