@@ -13,7 +13,8 @@ contract PropertyDirectoryTokenTest {
 	address public token;
 
 	function createToken(address _author) external {
-		PropertyDirectoryToken tmp = new PropertyDirectoryToken(_author, "test", "TEST");
+		PropertyDirectoryToken tmp =
+			new PropertyDirectoryToken(_author, "test", "TEST");
 		token = address(tmp);
 	}
 
