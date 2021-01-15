@@ -9,4 +9,6 @@ interface IPropertyDirectoryConfig {
 	function getEvent() external view returns (address);
 
 	function getTokenFactory() external view returns (address);
+
+	function getLogic() external view returns (address);
 }

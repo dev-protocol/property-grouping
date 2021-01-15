@@ -9,10 +9,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // prettier-ignore
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
 // prettier-ignore
-import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
-// prettier-ignore
-import {IPropertyGroup} from "@devprotocol/protocol/contracts/interface/IPropertyGroup.sol";
-// prettier-ignore
 import {IWithdraw} from "@devprotocol/protocol/contracts/interface/IWithdraw.sol";
 import {Property} from "contracts/lib/Property.sol";
 import {PropertyDirectoryStorage} from "contracts/PropertyDirectoryStorage.sol";
@@ -25,6 +21,8 @@ import {IPropertyDirectoryTokenFactory} from "contracts/token/IPropertyDirectory
 import {IPropertyDirectoryEvent} from "contracts/event/IPropertyDirectoryEvent.sol";
 // prettier-ignore
 import {IPropertyDirectoryToken} from "contracts/token/IPropertyDirectoryToken.sol";
+// prettier-ignore
+import {IPropertyDirectoryLogic} from "contracts/logic/IPropertyDirectoryLogic.sol";
 
 contract PropertyDirectory is
 	Pausable,
@@ -87,7 +85,7 @@ contract PropertyDirectory is
 			propertySet.length() < MAC_ASSOCIATE_COUNT,
 			"over associate count"
 		);
-		validatePropertyAddress(_property);
+		getLogic().validatePropertyAddress(_property);
 
 		address token = getToken();
 		IERC20 directoryToken = IERC20(token);
@@ -136,44 +134,20 @@ contract PropertyDirectory is
 	// 	}
 	// }
 
-	function validatePropertyAddress(address _property) private view {
-		address protocolConfig =
-			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
-		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		IPropertyGroup propertyGroup =
-			IPropertyGroup(addressConfig.propertyGroup());
-		require(propertyGroup.isGroup(_property), "not property address");
-	}
-
 	function takeRewordAmount() external override whenNotPaused {
-		address[] storage properties;
-		for (uint256 i = 0; i < propertySet.length(); i++) {
-			properties.push(propertySet.at(i));
-		}
-		address protocolConfig =
-			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
-		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		uint256 minted =
-			IWithdraw(addressConfig.withdraw()).bulkWithdraw(properties);
+		address[] memory properties = convertToArray();
+		address withdrawAddress = getLogic().getWithdrawAddress();
+		uint256 minted = IWithdraw(withdrawAddress).bulkWithdraw(properties);
 		require(minted != 0, "token is not mint");
 		setCumulativeRewordAmount(minted.add(getCumulativeRewordAmount()));
 	}
 
-	function curretnRewardAmount() public view whenNotPaused returns (uint256) {
-		address protocolConfig =
-			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
-		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		IWithdraw withdrawContract = IWithdraw(addressConfig.withdraw());
-		uint256 amount;
+	function convertToArray() private view returns (address[] memory) {
+		address[] memory properties;
 		for (uint256 i = 0; i < propertySet.length(); i++) {
-			uint256 tmp =
-				withdrawContract.calculateWithdrawableAmount(
-					propertySet.at(i),
-					address(this)
-				);
-			amount = amount.add(tmp);
+			properties[i] = propertySet.at(i);
 		}
-		return amount;
+		return properties;
 	}
 
 	function beforeBalanceChange(
@@ -182,8 +156,6 @@ contract PropertyDirectory is
 		uint256 _amount
 	) external override whenNotPaused {
 		require(msg.sender == getToken(), "illegal access");
-		uint256 totalRewordAmount =
-			curretnRewardAmount().add(getCumulativeRewordAmount());
 		address eventAddress =
 			IPropertyDirectoryConfig(configAddress()).getEvent();
 		IPropertyDirectoryEvent(eventAddress).beforeBalanceChange(
@@ -191,19 +163,26 @@ contract PropertyDirectory is
 			_to,
 			_amount
 		);
+		address[] memory properties = convertToArray();
+		uint256 curretnRewardAmount =
+			getLogic().curretnRewardAmount(properties);
+		uint256 totalRewordAmount =
+			curretnRewardAmount.add(getCumulativeRewordAmount());
 		if (totalRewordAmount == 0) {
 			return;
 		}
+		setPendingWithdrawalValue(totalRewordAmount, _from);
+		setPendingWithdrawalValue(totalRewordAmount, _to);
+	}
+
+	function setPendingWithdrawalValue(
+		uint256 _totalRewordAmount,
+		address _account
+	) private {
 		setPendingWithdrawal(
-			_from,
-			getPendingWithdrawal(_from).add(
-				calculateAmount(totalRewordAmount, _from)
-			)
-		);
-		setPendingWithdrawal(
-			_to,
-			getPendingWithdrawal(_to).add(
-				calculateAmount(totalRewordAmount, _to)
+			_account,
+			getPendingWithdrawal(_account).add(
+				calculateAmount(_totalRewordAmount, _account)
 			)
 		);
 	}
@@ -212,14 +191,15 @@ contract PropertyDirectory is
 		IERC20 token = IERC20(getToken());
 		uint256 balance = token.balanceOf(msg.sender);
 		require(balance != 0, "you do not execute withdraw");
+		IPropertyDirectoryLogic logic = getLogic();
+		address[] memory properties = convertToArray();
+		uint256 curretnRewardAmount = logic.curretnRewardAmount(properties);
 		uint256 totalRewordAmount =
-			curretnRewardAmount().add(getCumulativeRewordAmount());
+			curretnRewardAmount.add(getCumulativeRewordAmount());
 		uint256 value = calculateAmount(totalRewordAmount, msg.sender);
-		address protocolConfig =
-			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
-		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
+		address dev = logic.getDevTokenAddress();
 		require(
-			IERC20(addressConfig.token()).transfer(
+			IERC20(dev).transfer(
 				msg.sender,
 				getPendingWithdrawal(msg.sender).add(value)
 			),
@@ -233,15 +213,14 @@ contract PropertyDirectory is
 		returns (uint256)
 	{
 		uint256 lastTotalReword = getLastTotalRewordAmount(_account);
-		uint256 decimals = IPropertyDirectoryToken(getToken()).tokenDecimals();
-		IERC20 token = IERC20(getToken());
-		uint256 balance = token.balanceOf(_account);
-		uint256 totalSupply = token.totalSupply();
-		uint256 unitPrice =
-			_totalRewordAmount.sub(lastTotalReword).mul(decimals).div(
-				totalSupply
+		address token = getToken();
+		uint256 value =
+			getLogic().calculateAmount(
+				_totalRewordAmount,
+				lastTotalReword,
+				token,
+				_account
 			);
-		uint256 value = unitPrice.mul(balance).div(decimals);
 		setLastTotalRewordAmount(_account, _totalRewordAmount);
 		return value;
 	}
@@ -275,6 +254,11 @@ contract PropertyDirectory is
 			iProperty.transfer(_newPropertyDirectory, balance),
 			"transer is fail"
 		);
+	}
+
+	function getLogic() private view returns (IPropertyDirectoryLogic) {
+		address logic = IPropertyDirectoryConfig(configAddress()).getLogic();
+		return IPropertyDirectoryLogic(logic);
 	}
 }
 
