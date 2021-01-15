@@ -2,9 +2,8 @@ import { expect, use } from 'chai'
 import { Contract } from 'ethers'
 import { deployContract, MockProvider, solidity } from 'ethereum-waffle'
 import * as PropertyDirectoryTokenTest from '../../build/PropertyDirectoryTokenTest.json'
-import * as PropertyDirectoryTokenTest2 from '../../build/PropertyDirectoryTokenTest2.json'
 import * as PropertyDirectoryToken from '../../build/PropertyDirectoryToken.json'
-import { toBigNumber } from './../lib/number'
+import { toBigNumber } from '@devprotocol/util-ts'
 
 use(solidity)
 
@@ -69,15 +68,15 @@ describe('PropertyDirectoryToken', () => {
 				PropertyDirectoryToken,
 				[deployer.address, 'test', 'TEST']
 			)
-			const propertyDirectoryTokenTest2 = await deployContract(
+			const propertyDirectoryTokenTest = await deployContract(
 				deployer,
-				PropertyDirectoryTokenTest2
+				PropertyDirectoryTokenTest
 			)
 			await propertyDirectoryToken.setPropertyDirectoryAddress(
-				propertyDirectoryTokenTest2.address
+				propertyDirectoryTokenTest.address
 			)
 			await expect(propertyDirectoryToken.transfer(author.address, 100))
-				.to.emit(propertyDirectoryTokenTest2, 'BeforeBalanceChange')
+				.to.emit(propertyDirectoryTokenTest, 'BeforeBalanceChange')
 				.withArgs(deployer.address, author.address, 100)
 		})
 		it('non-deployer can not change the address of PropertyDirectory.', async () => {

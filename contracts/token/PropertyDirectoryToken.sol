@@ -3,26 +3,33 @@ pragma solidity 0.7.6;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
+// prettier-ignore
+import {IPropertyDirectoryToken} from "contracts/token/IPropertyDirectoryToken.sol";
 
-contract PropertyDirectoryToken is ERC20 {
+contract PropertyDirectoryToken is ERC20, IPropertyDirectoryToken {
 	uint256 private constant SUPPLY = 10000000000000000000000000;
 	address private propertyDirectory;
 	address public author;
 
 	constructor(
 		address _author,
+		address _propertyDirectory,
 		string memory _name,
 		string memory _symbol
 	) ERC20(_name, _symbol) {
 		_mint(_author, SUPPLY);
 		author = _author;
-		propertyDirectory = msg.sender;
+		propertyDirectory = _propertyDirectory;
 	}
 
-	function setPropertyDirectoryAddress(address _propertyDirectory) external {
+	function setPropertyDirectoryAddress(address _propertyDirectory) external override {
 		require(msg.sender == propertyDirectory, "illegal access");
 		propertyDirectory = _propertyDirectory;
 	}
+
+    function tokenDecimals() external view override returns (uint8) {
+        return ERC20.decimals();
+    }
 
 	function transfer(address _recipient, uint256 _amount)
 		public

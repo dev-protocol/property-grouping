@@ -6,6 +6,8 @@
 	"scripts": {
 		"test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000 --parallel",
 		"pretest": "yarn generate",
+		"test2": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000",
+		"pretest2": "yarn generate",
 		"generate": "waffle waffle-config.json",
 		"pregenerate": "yarn clean",
 		"exec": "node",
@@ -27,6 +29,7 @@
 		"@types/mocha": "8.2.0",
 		"@typescript-eslint/eslint-plugin": "4.11.0",
 		"@typescript-eslint/parser": "4.11.0",
+		"@devprotocol/util-ts": "2.1.0",
 		"chai": "4.2.0",
 		"dotenv": "8.2.0",
 		"eslint": "7.16.0",

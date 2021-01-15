@@ -2,9 +2,11 @@
 pragma solidity 0.7.6;
 
 interface IPropertyDirectoryConfig {
-	function getFactory() external returns (address);
+	function getFactory() external view returns (address);
 
 	function getProtocolConfig() external view returns (address);
 
 	function getEvent() external view returns (address);
+
+	function getTokenFactory() external view returns (address);
 }

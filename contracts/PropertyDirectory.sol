@@ -5,7 +5,6 @@ pragma experimental ABIEncoderV2;
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // prettier-ignore
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
@@ -21,9 +20,11 @@ import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
 // prettier-ignore
 import {IPropertyDirectoryConfig} from "contracts/config/IPropertyDirectoryConfig.sol";
 // prettier-ignore
-import {PropertyDirectoryToken} from "contracts/token/PropertyDirectoryToken.sol";
+import {IPropertyDirectoryTokenFactory} from "contracts/token/IPropertyDirectoryTokenFactory.sol";
 // prettier-ignore
 import {IPropertyDirectoryEvent} from "contracts/event/IPropertyDirectoryEvent.sol";
+// prettier-ignore
+import {IPropertyDirectoryToken} from "contracts/token/IPropertyDirectoryToken.sol";
 
 contract PropertyDirectory is
 	Pausable,
@@ -54,15 +55,15 @@ contract PropertyDirectory is
 		string memory _name,
 		string memory _symbol
 	) external override onlyFactory {
-		PropertyDirectoryToken token =
-			new PropertyDirectoryToken(_author, _name, _symbol);
-		token.setPropertyDirectoryAddress(address(this));
-		setToken(address(token));
+		address tokenFactory =
+			IPropertyDirectoryConfig(configAddress()).getTokenFactory();
+		address token = IPropertyDirectoryTokenFactory(tokenFactory).create(_author, address(this), _name, _symbol);
+		setToken(token);
 	}
 
 	function setMyAddress() external override onlyFactory {
 		address token = getToken();
-		PropertyDirectoryToken(token).setPropertyDirectoryAddress(
+		IPropertyDirectoryToken(token).setPropertyDirectoryAddress(
 			address(this)
 		);
 	}
@@ -226,8 +227,8 @@ contract PropertyDirectory is
 		returns (uint256)
 	{
 		uint256 lastTotalReword = getLastTotalRewordAmount(_account);
-		ERC20 token = ERC20(getToken());
-		uint256 decimals = token.decimals();
+		uint256 decimals = IPropertyDirectoryToken(getToken()).tokenDecimals();
+		IERC20 token = IERC20(getToken());
 		uint256 balance = token.balanceOf(_account);
 		uint256 totalSupply = token.totalSupply();
 		uint256 unitPrice =
@@ -256,6 +257,7 @@ contract PropertyDirectory is
 		propertySet.add(_property);
 	}
 
+	// TODO 去り際にDEVをwithdrawして、それも一緒に転送しなければいけない
 	function transferProperty(address _property, address _newPropertyDirectory)
 		external
 		override
@@ -269,3 +271,8 @@ contract PropertyDirectory is
 		);
 	}
 }
+
+//TODO
+// TODO 去り際にDEVをwithdrawして、それも一緒に転送しなければいけない
+// コントラクトの分離
+// 特にロジック、ライブラリ、実態を分離していく

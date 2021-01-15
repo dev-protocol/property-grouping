@@ -29,4 +29,12 @@ contract PropertyDirectoryConfig is Config, IPropertyDirectoryConfig {
 	function getEvent() external view override returns (address) {
 		return get("_event");
 	}
+
+	function setTokenFactory(address _tokenFactory) external {
+		set("_tokenFactory", _tokenFactory);
+	}
+
+	function getTokenFactory() external view override returns (address) {
+		return get("_tokenFactory");
+	}
 }
