@@ -57,7 +57,13 @@ contract PropertyDirectory is
 	) external override onlyFactory {
 		address tokenFactory =
 			IPropertyDirectoryConfig(configAddress()).getTokenFactory();
-		address token = IPropertyDirectoryTokenFactory(tokenFactory).create(_author, address(this), _name, _symbol);
+		address token =
+			IPropertyDirectoryTokenFactory(tokenFactory).create(
+				_author,
+				address(this),
+				_name,
+				_symbol
+			);
 		setToken(token);
 	}
 

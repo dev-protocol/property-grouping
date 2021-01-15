@@ -22,14 +22,17 @@ contract PropertyDirectoryToken is ERC20, IPropertyDirectoryToken {
 		propertyDirectory = _propertyDirectory;
 	}
 
-	function setPropertyDirectoryAddress(address _propertyDirectory) external override {
+	function setPropertyDirectoryAddress(address _propertyDirectory)
+		external
+		override
+	{
 		require(msg.sender == propertyDirectory, "illegal access");
 		propertyDirectory = _propertyDirectory;
 	}
 
-    function tokenDecimals() external view override returns (uint8) {
-        return ERC20.decimals();
-    }
+	function tokenDecimals() external view override returns (uint8) {
+		return ERC20.decimals();
+	}
 
 	function transfer(address _recipient, uint256 _amount)
 		public
