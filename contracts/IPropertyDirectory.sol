@@ -10,8 +10,6 @@ interface IPropertyDirectory {
 
 	function setMyAddress() external;
 
-	function pause() external;
-
 	function takeRewordAmount() external;
 
 	function associate(address _property, uint256 _amount) external;

@@ -48,10 +48,6 @@ contract PropertyDirectoryLogic is IPropertyDirectoryLogic, UsingConfig {
 		return addressConfig.token();
 	}
 
-	function getWithdrawAddress() external view override returns (address) {
-		return getWithdrawAddressPrivate();
-	}
-
 	function validatePropertyAddress(address _property) external view override {
 		address protocolConfig =
 			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
@@ -61,13 +57,24 @@ contract PropertyDirectoryLogic is IPropertyDirectoryLogic, UsingConfig {
 		require(propertyGroup.isGroup(_property), "not property address");
 	}
 
+	function getWithdrawAddress() external view override returns (address) {
+		return getWithdraw();
+	}
+
+	function getWithdraw() private view returns (address) {
+		address protocolConfig =
+			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
+		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
+		return addressConfig.withdraw();
+	}
+
 	function curretnRewardAmount(address[] memory properties)
 		external
 		view
 		override
 		returns (uint256)
 	{
-		address withdrawAddress = getWithdrawAddressPrivate();
+		address withdrawAddress = getWithdraw();
 		IWithdraw withdrawContract = IWithdraw(withdrawAddress);
 		uint256 amount;
 		for (uint256 i = 0; i < properties.length; i++) {
@@ -79,12 +86,5 @@ contract PropertyDirectoryLogic is IPropertyDirectoryLogic, UsingConfig {
 			amount = amount.add(tmp);
 		}
 		return amount;
-	}
-
-	function getWithdrawAddressPrivate() private view returns (address) {
-		address protocolConfig =
-			IPropertyDirectoryConfig(configAddress()).getProtocolConfig();
-		IAddressConfig addressConfig = IAddressConfig(protocolConfig);
-		return addressConfig.withdraw();
 	}
 }

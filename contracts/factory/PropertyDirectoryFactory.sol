@@ -56,7 +56,6 @@ contract PropertyDirectoryFactory is
 			);
 			newPropertyDirectory.addPropertySet(property);
 		}
-		oldPropertyDirectory.pause();
 		addPropertyDirectory(newDiredtoryAddress);
 		deletePropertyDirectory(address(oldPropertyDirectory));
 		emit Recreate(_directory, newDiredtoryAddress);

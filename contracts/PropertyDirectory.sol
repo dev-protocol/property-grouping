@@ -3,13 +3,14 @@ pragma solidity 0.7.6;
 pragma experimental ABIEncoderV2;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {SafeMath} from "@openzeppelin/contracts/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // prettier-ignore
 import {UsingConfig} from "@devprotocol/util-contracts/contracts/config/UsingConfig.sol";
 // prettier-ignore
 import {IWithdraw} from "@devprotocol/protocol/contracts/interface/IWithdraw.sol";
+// prettier-ignore
+import {IAddressConfig} from "@devprotocol/protocol/contracts/interface/IAddressConfig.sol";
 import {Property} from "contracts/lib/Property.sol";
 import {PropertyDirectoryStorage} from "contracts/PropertyDirectoryStorage.sol";
 import {IPropertyDirectory} from "contracts/IPropertyDirectory.sol";
@@ -25,7 +26,6 @@ import {IPropertyDirectoryToken} from "contracts/token/IPropertyDirectoryToken.s
 import {IPropertyDirectoryLogic} from "contracts/logic/IPropertyDirectoryLogic.sol";
 
 contract PropertyDirectory is
-	Pausable,
 	PropertyDirectoryStorage,
 	UsingConfig,
 	IPropertyDirectory
@@ -72,14 +72,9 @@ contract PropertyDirectory is
 		);
 	}
 
-	function pause() external override onlyFactory {
-		_pause();
-	}
-
 	function associate(address _property, uint256 _amount)
 		external
 		override
-		whenNotPaused
 	{
 		require(
 			propertySet.length() < MAC_ASSOCIATE_COUNT,
@@ -116,7 +111,7 @@ contract PropertyDirectory is
 	// 	address _recipient,
 	// 	address _property,
 	// 	uint256 _amount
-	// ) external whenNotPaused {
+	// ) external {
 	// 	validatePropertyAddress(_property);
 	// 	uint256 transferdPropertyBalance =
 	// 		getTransferedProperty(_property, msg.sender);
@@ -134,7 +129,7 @@ contract PropertyDirectory is
 	// 	}
 	// }
 
-	function takeRewordAmount() external override whenNotPaused {
+	function takeRewordAmount() external override {
 		address[] memory properties = convertToArray();
 		address withdrawAddress = getLogic().getWithdrawAddress();
 		uint256 minted = IWithdraw(withdrawAddress).bulkWithdraw(properties);
@@ -154,7 +149,7 @@ contract PropertyDirectory is
 		address _from,
 		address _to,
 		uint256 _amount
-	) external override whenNotPaused {
+	) external override {
 		require(msg.sender == getToken(), "illegal access");
 		address eventAddress =
 			IPropertyDirectoryConfig(configAddress()).getEvent();
@@ -164,10 +159,9 @@ contract PropertyDirectory is
 			_amount
 		);
 		address[] memory properties = convertToArray();
-		uint256 curretnRewardAmount =
-			getLogic().curretnRewardAmount(properties);
+		uint256 curretnReward = getLogic().curretnRewardAmount(properties);
 		uint256 totalRewordAmount =
-			curretnRewardAmount.add(getCumulativeRewordAmount());
+			curretnReward.add(getCumulativeRewordAmount());
 		if (totalRewordAmount == 0) {
 			return;
 		}
@@ -187,15 +181,15 @@ contract PropertyDirectory is
 		);
 	}
 
-	function withdraw() external override whenNotPaused {
+	function withdraw() external override {
 		IERC20 token = IERC20(getToken());
 		uint256 balance = token.balanceOf(msg.sender);
 		require(balance != 0, "you do not execute withdraw");
 		IPropertyDirectoryLogic logic = getLogic();
 		address[] memory properties = convertToArray();
-		uint256 curretnRewardAmount = logic.curretnRewardAmount(properties);
+		uint256 curretnReward = logic.curretnRewardAmount(properties);
 		uint256 totalRewordAmount =
-			curretnRewardAmount.add(getCumulativeRewordAmount());
+			curretnReward.add(getCumulativeRewordAmount());
 		uint256 value = calculateAmount(totalRewordAmount, msg.sender);
 		address dev = logic.getDevTokenAddress();
 		require(
@@ -264,5 +258,3 @@ contract PropertyDirectory is
 
 //TODO
 // TODO 去り際にDEVをwithdrawして、それも一緒に転送しなければいけない
-// コントラクトの分離
-// 特にロジック、ライブラリ、実態を分離していく

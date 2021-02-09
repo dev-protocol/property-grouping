@@ -4,7 +4,7 @@
 	"description": "Template repository for using TypeScript and Solidity",
 	"main": "index.js",
 	"scripts": {
-		"test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000 --parallel",
+		"test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000",
 		"pretest": "yarn generate",
 		"test2": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000",
 		"pretest2": "yarn generate",
@@ -24,7 +24,6 @@
 	"author": "",
 	"license": "MPL-2.0",
 	"devDependencies": {
-		"@openzeppelin/contracts": "3.4.0",
 		"@types/chai": "4.2.14",
 		"@types/dotenv": "8.2.0",
 		"@types/mocha": "8.2.0",
@@ -56,6 +55,6 @@
 	"dependencies": {
 		"@devprotocol/protocol": "3.0.6",
 		"@devprotocol/util-contracts": "2.1.5",
-		"@openzeppelin/contracts": "3.3.0"
+		"@openzeppelin/contracts": "^3.4.0"
 	}
 }
