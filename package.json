@@ -4,8 +4,10 @@
 	"description": "Template repository for using TypeScript and Solidity",
 	"main": "index.js",
 	"scripts": {
-		"test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000 --parallel",
+		"test": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000",
 		"pretest": "yarn generate",
+		"test2": "mocha --require ts-node/register 'test/**/*.ts' --timeout 300000",
+		"pretest2": "yarn generate",
 		"generate": "waffle waffle-config.json",
 		"pregenerate": "yarn clean",
 		"exec": "node",
@@ -22,12 +24,12 @@
 	"author": "",
 	"license": "MPL-2.0",
 	"devDependencies": {
-		"@openzeppelin/contracts": "3.4.0",
 		"@types/chai": "4.2.14",
 		"@types/dotenv": "8.2.0",
 		"@types/mocha": "8.2.0",
 		"@typescript-eslint/eslint-plugin": "4.15.0",
 		"@typescript-eslint/parser": "4.15.0",
+		"@devprotocol/util-ts": "2.1.0",
 		"chai": "4.3.0",
 		"dotenv": "8.2.0",
 		"eslint": "7.19.0",
@@ -41,6 +43,7 @@
 		"prettier": "2.2.1",
 		"prettier-plugin-solidity": "1.0.0-beta.5",
 		"rimraf": "3.0.2",
+		"solhint": "3.3.1",
 		"ts-node": "9.1.1",
 		"typescript": "4.1.4"
 	},
@@ -50,6 +53,8 @@
 		}
 	},
 	"dependencies": {
-		"solhint": "^3.3.1"
+		"@devprotocol/protocol": "3.0.6",
+		"@devprotocol/util-contracts": "2.1.5",
+		"@openzeppelin/contracts": "^3.4.0"
 	}
 }
