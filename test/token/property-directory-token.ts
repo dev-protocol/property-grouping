@@ -1,5 +1,5 @@
 import { expect, use } from 'chai'
-import { Contract } from 'ethers'
+import { Contract, constants } from 'ethers'
 import { deployContract, MockProvider, solidity } from 'ethereum-waffle'
 import * as PropertyDirectoryTokenTest from '../../build/PropertyDirectoryTokenTest.json'
 import * as PropertyDirectoryToken from '../../build/PropertyDirectoryToken.json'
@@ -60,36 +60,56 @@ describe('PropertyDirectoryToken', () => {
 	})
 	describe('setPropertyDirectoryAddress', () => {
 		const provider = new MockProvider()
-		const [deployer, author, user] = provider.getWallets()
+		const [deployer, author, propertyDirectory, user] = provider.getWallets()
 
 		it('deployer can change the address of PropertyDirectory.', async () => {
 			const propertyDirectoryToken = await deployContract(
-				deployer,
+				author,
 				PropertyDirectoryToken,
-				[deployer.address, 'test', 'TEST']
+				[author.address, propertyDirectory.address, 'test', 'TEST']
 			)
 			const propertyDirectoryTokenTest = await deployContract(
 				deployer,
 				PropertyDirectoryTokenTest
 			)
-			await propertyDirectoryToken.setPropertyDirectoryAddress(
-				propertyDirectoryTokenTest.address
+			await propertyDirectoryToken
+				.connect(propertyDirectory)
+				.setPropertyDirectoryAddress(propertyDirectoryTokenTest.address, {
+					gasLimit: 1200000,
+				})
+			await expect(
+				propertyDirectoryToken.transfer(user.address, 100, {
+					gasLimit: 1200000,
+				})
 			)
-			await expect(propertyDirectoryToken.transfer(author.address, 100))
 				.to.emit(propertyDirectoryTokenTest, 'BeforeBalanceChange')
-				.withArgs(deployer.address, author.address, 100)
+				.withArgs(author.address, user.address, 100)
 		})
 		it('non-deployer can not change the address of PropertyDirectory.', async () => {
 			const propertyDirectoryToken = await deployContract(
 				deployer,
 				PropertyDirectoryToken,
-				[author.address, 'test', 'TEST']
+				[author.address, constants.AddressZero, 'test', 'TEST']
 			)
 			const empty = provider.createEmptyWallet()
 			const propertyDirectoryTokenUser = propertyDirectoryToken.connect(user)
 			await expect(
 				propertyDirectoryTokenUser.setPropertyDirectoryAddress(empty.address)
 			).to.be.revertedWith('illegal access')
+		})
+	})
+	describe('tokenDecimals', () => {
+		const provider = new MockProvider()
+		const [deployer, propertyDirectory] = provider.getWallets()
+
+		it('can get token decimals.', async () => {
+			const propertyDirectoryToken = await deployContract(
+				deployer,
+				PropertyDirectoryToken,
+				[deployer.address, propertyDirectory.address, 'test', 'TEST']
+			)
+			const decimals: number = await propertyDirectoryToken.tokenDecimals()
+			expect(decimals).to.equal(18)
 		})
 	})
 })

@@ -81,7 +81,7 @@ contract PropertyDirectoryLogic is IPropertyDirectoryLogic, UsingConfig {
 			uint256 tmp =
 				withdrawContract.calculateWithdrawableAmount(
 					properties[i],
-					address(this)
+					msg.sender
 				);
 			amount = amount.add(tmp);
 		}

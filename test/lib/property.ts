@@ -47,28 +47,4 @@ describe('Property', () => {
 			)
 		})
 	})
-	describe('divAmount', () => {
-		it('in case totalSupply is 10000000000000000000000000.', async () => {
-			const propertyTest = await getTestInstance(
-				toBigNumber('10000000000000000000000000')
-			)
-			const result = await propertyTest.divAmount(100)
-			expect(toBigNumber(result)).to.equal(toBigNumber(100))
-		})
-		it('in case totalSupply is 10000000.', async () => {
-			const propertyTest = await getTestInstance(toBigNumber(10000000))
-			const result = await propertyTest.divAmount(
-				toBigNumber('100000000000000000000')
-			)
-			expect(toBigNumber(result).toString()).to.equal(
-				toBigNumber(100).toString()
-			)
-		})
-		it('if it is an invalid address.', async () => {
-			const propertyTest = await getTestInstance(toBigNumber(10))
-			await expect(propertyTest.divAmount(100)).to.be.revertedWith(
-				'liiegal address'
-			)
-		})
-	})
 })

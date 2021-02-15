@@ -12,6 +12,8 @@ describe('PropertyDirectoryConfig', () => {
 		factory,
 		protocolConfig,
 		eventContract,
+		tokenFactory,
+		logic,
 	] = new MockProvider().getWallets()
 	let propertyDirectoryConfig: Contract
 	let propertyDirectoryConfigOther: Contract
@@ -71,6 +73,40 @@ describe('PropertyDirectoryConfig', () => {
 		it('get the set address', async () => {
 			await expect(
 				propertyDirectoryConfigOther.setEvent(eventContract.address)
+			).to.be.revertedWith('admin only.')
+		})
+	})
+
+	describe('setTokenFactory, getTokenFactory', () => {
+		it('0 by default', async () => {
+			const value: string = await propertyDirectoryConfig.getTokenFactory()
+			expect(value).to.equal(constants.AddressZero)
+		})
+		it('get the set address', async () => {
+			await propertyDirectoryConfig.setTokenFactory(tokenFactory.address)
+			const value: string = await propertyDirectoryConfig.getTokenFactory()
+			expect(value).to.equal(tokenFactory.address)
+		})
+		it('get the set address', async () => {
+			await expect(
+				propertyDirectoryConfigOther.setEvent(tokenFactory.address)
+			).to.be.revertedWith('admin only.')
+		})
+	})
+
+	describe('setLogic, getLogic', () => {
+		it('0 by default', async () => {
+			const value: string = await propertyDirectoryConfig.getLogic()
+			expect(value).to.equal(constants.AddressZero)
+		})
+		it('get the set address', async () => {
+			await propertyDirectoryConfig.setLogic(logic.address)
+			const value: string = await propertyDirectoryConfig.getLogic()
+			expect(value).to.equal(logic.address)
+		})
+		it('get the set address', async () => {
+			await expect(
+				propertyDirectoryConfigOther.setLogic(logic.address)
 			).to.be.revertedWith('admin only.')
 		})
 	})

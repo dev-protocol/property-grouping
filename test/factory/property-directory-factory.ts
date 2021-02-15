@@ -8,7 +8,7 @@ import { toBigNumber } from '@devprotocol/util-ts'
 
 use(solidity)
 
-describe.only('PropertyDirectoryFactory', () => {
+describe('PropertyDirectoryFactory', () => {
 	const options = {
 		allowUnlimetedContractSize: true,
 		gasLimit: 0xfffffffffff,
@@ -20,7 +20,6 @@ describe.only('PropertyDirectoryFactory', () => {
 	let propertyDirectoryTokenFactory: Contract
 
 	before(async () => {
-		console.log(1)
 		propertyDirectoryConfig = await deployContract(
 			deployer,
 			PropertyDirectoryConfig
@@ -33,7 +32,6 @@ describe.only('PropertyDirectoryFactory', () => {
 		await propertyDirectoryConfig.setTokenFactory(
 			propertyDirectoryTokenFactory.address
 		)
-		console.log(2)
 		propertyDirectoryFactory = await deployContract(
 			deployer,
 			PropertyDirectoryFactory,
@@ -42,11 +40,8 @@ describe.only('PropertyDirectoryFactory', () => {
 				gasLimit: 8000000,
 			}
 		)
-		console.log(3)
 		await propertyDirectoryFactory.createStorage()
-		console.log(4)
 		await propertyDirectoryConfig.setFactory(propertyDirectoryFactory.address)
-		console.log(5)
 	})
 
 	describe('create', () => {

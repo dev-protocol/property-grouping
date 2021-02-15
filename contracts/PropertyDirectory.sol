@@ -72,10 +72,7 @@ contract PropertyDirectory is
 		);
 	}
 
-	function associate(address _property, uint256 _amount)
-		external
-		override
-	{
+	function associate(address _property, uint256 _amount) external override {
 		require(
 			propertySet.length() < MAC_ASSOCIATE_COUNT,
 			"over associate count"
