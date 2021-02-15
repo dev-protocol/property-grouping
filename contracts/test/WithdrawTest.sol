@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 pragma solidity 0.7.6;
 
-contract WithdrawTest
-{
-
-	function calculateWithdrawableAmount(address _property, address) external view returns (uint256) {
+contract WithdrawTest {
+	function calculateWithdrawableAmount(address _property, address)
+		external
+		view
+		returns (uint256)
+	{
 		if (_property == 0x1dCb85efEa6A3FB528d19B9174E88ee35BfF540a) {
 			return 100000000000000000000;
 		}
